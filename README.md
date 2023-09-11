@@ -34,9 +34,12 @@ It goes without saying that I am new to this topic and have not invested a lot o
 Some of the best articles on CDC using Gear Hashing are the articles by Josh Leeb (also where I obtained most of my knowledge from):
 
 [CDC](https://joshleeb.com/posts/content-defined-chunking.html)
+
 [Gear Hashing](https://joshleeb.com/posts/gear-hashing.html)
+
 [FastCDC](https://joshleeb.com/posts/fastcdc.html)
 
 [Restic's use of CDC using Rabin Fingerprints](https://restic.net/blog/2015-09-12/restic-foundation1-cdc/)
+
 [FastCDC paper](https://www.usenix.org/system/files/conference/atc16/atc16-paper-xia.pdf)
 
