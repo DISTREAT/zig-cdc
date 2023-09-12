@@ -24,6 +24,40 @@ therefore also altering the hash, ultimately causing already existing data to be
 To solve the issue, a [rolling hash](https://en.wikipedia.org/wiki/Rolling_hash) is utilized that will pseudo-randomly define boundaries which shift along
 the actual data, since the boundaries correlate with the hash calculated while 'rolling' over the bytes.
 
+## Testing the implementation
+
+Apart from a simple integration test (`zig build test`), the codebase also provides an in-memory model that collects statistical data to verify
+that the implementation reaches expected goals (`zig build stats`):
+
+```
+info: input data size: 10 MB
+minimum chunk size: 9.5 KB
+desired chunk size: 10 KB
+maximum chunk size: 10.5 KB
+
+info: initial used space: 10490 KB / 10 MB
+initial chunk count: 982
+initial smallest chunk size: 5 KB
+initial average chunk size: 10 KB
+initial largest chunk size: 10 KB
+
+info: mutation used space: 10500 KB / 10 MB
+mutation chunk count: 983
+mutation smallest chunk size: 5 KB
+mutation average chunk size: 10 KB
+mutation largest chunk size: 10 KB
+```
+
+The relevant part for interpreting the results is to compare the initial stats against the after-mutation stats.
+`Initial` is referring to the stats after segmenting the original data.
+Whereas, `mutation` is referring to the stats after segmenting the data with a modified byte.
+
+The goal of having a decently-consistent chunk size is in this example accomplished.
+Another interesting detail that confirms that the implementation is working as expected, is the delta between the two chunk counts being exactly 1.
+
+Do not get confused by the smallest chunk size, it falls below the defined minimum chunk size because the final rest of the data is collected as a chunk,
+leading to one smaller chunk.
+
 ## Disclaimer
 
 Although the implementation is inspired by FastCDC, it should not be assumed that the suggestions to this new approach were fully translated.
