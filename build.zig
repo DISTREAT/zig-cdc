@@ -24,10 +24,18 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const install_docs = b.addInstallDirectory(.{
+        .source_dir = lib.getEmittedDocs(),
+        .install_dir = .{ .custom = ".." },
+        .install_subdir = "docs",
+    });
+
     b.installArtifact(lib);
 
     const test_step = b.step("test", "Run integration tests");
     test_step.dependOn(&b.addRunArtifact(tests).step);
     const stats_step = b.step("stats", "Perform test runs and collect stats");
     stats_step.dependOn(&b.addRunArtifact(stats).step);
+    const docs_step = b.step("docs", "Build the library documentation");
+    docs_step.dependOn(&install_docs.step);
 }
