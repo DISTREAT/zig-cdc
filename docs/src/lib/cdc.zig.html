@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>cdc.zig - source view</title>
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAPNJREFUeNpi/P//PwMlgOXHUjly9E0G4hwgZmQiQZMqEK8H4v9QzUEgQSaoADK+zhH9iAGL+C0gDoAaNg9mGLoLfgA1awK9hS9gzgJxA9RQBmQDrgMxJzRMGKE4HYj/Ial5A8QmQLwCJoBsgBYW2+TR1ChDaWt4LOBxKsi/VUh8XiD+gq4IVyzwQAMJBoKwacZlAB8Qf0bi96IZhtOAe1D6LpqaEiz6rmEzQAeIzwGxCJpieFqApo/vQKyJboAaEBsAsSEupwI1MwKjGBTVHOhegMX5UajYRqiBjMgYmj400cVh0XgTiKdC0zhJgJHS7AwQYABm9EAdCKrEfAAAAABJRU5ErkJggg=="/>
+    <style>
+      body{
+        font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      pre > code {
+        display: block;
+        overflow: auto;
+        line-height: normal;
+        margin: 0em;
+      }
+      .tok-kw {
+          color: #333;
+          font-weight: bold;
+      }
+      .tok-str {
+          color: #d14;
+      }
+      .tok-builtin {
+          color: #005C7A;
+      }
+      .tok-comment {
+          color: #545454;
+          font-style: italic;
+      }
+      .tok-fn {
+          color: #900;
+          font-weight: bold;
+      }
+      .tok-null {
+          color: #005C5C;
+      }
+      .tok-number {
+          color: #005C5C;
+      }
+      .tok-type {
+          color: #458;
+          font-weight: bold;
+      }
+      pre {
+        counter-reset: line;
+      }
+      pre .line:before {
+        counter-increment: line;
+        content: counter(line);
+        display: inline-block;
+        padding-right: 1em;
+        width: 2em;
+        text-align: right;
+        color: #999;
+      }
+      
+      .line {
+        width: 100%;
+        display: inline-block;
+      }
+      .line:target {
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        background: #fafafa;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body{
+            background:#222;
+            color: #ccc;
+        }
+        pre > code {
+            color: #ccc;
+            background: #222;
+            border: unset;
+        }
+        .line:target {
+            border-top: 1px solid #444;
+            border-bottom: 1px solid #444;
+            background: #333;
+        }
+        .tok-kw {
+            color: #eee;
+        }
+        .tok-str {
+            color: #2e5;
+        }
+        .tok-builtin {
+            color: #ff894c;
+        }
+        .tok-comment {
+            color: #aa7;
+        }
+        .tok-fn {
+            color: #B1A0F8;
+        }
+        .tok-null {
+            color: #ff8080;
+        }
+        .tok-number {
+            color: #ff8080;
+        }
+        .tok-type {
+            color: #68f;
+        }
+      }
+    </style>
+</head>
+<body>
+<pre><code><span class="line" id="L1"><span class="tok-comment">//! This module provides methods and functions for generating masks and defining the chunk boundaries of data</span></span>
+<span class="line" id="L2"><span class="tok-comment">//! [Released under GNU LGPLv3]</span></span>
+<span class="line" id="L3"><span class="tok-comment">//!</span></span>
+<span class="line" id="L4"><span class="tok-kw">const</span> std = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;std&quot;</span>);</span>
+<span class="line" id="L5"><span class="tok-kw">const</span> gear = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;gear.zig&quot;</span>);</span>
+<span class="line" id="L6"></span>
+<span class="line" id="L7"><span class="tok-comment">/// Generate both a small and large mask as suggested by FastCDC</span></span>
+<span class="line" id="L8"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">generateMasks</span>(desired_chunk_size: <span class="tok-type">usize</span>) <span class="tok-kw">struct</span> { mask_s: <span class="tok-type">u32</span>, mask_l: <span class="tok-type">u32</span> } {</span>
+<span class="line" id="L9">    <span class="tok-kw">const</span> bits = <span class="tok-builtin">@round</span>(<span class="tok-builtin">@log2</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@floatFromInt</span>(desired_chunk_size))));</span>
+<span class="line" id="L10">    <span class="tok-kw">const</span> mask_s: <span class="tok-type">u32</span> = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@intFromFloat</span>(<span class="tok-builtin">@exp2</span>(bits + <span class="tok-number">1</span>))) - <span class="tok-number">1</span>;</span>
+<span class="line" id="L11">    <span class="tok-kw">const</span> mask_l: <span class="tok-type">u32</span> = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@intFromFloat</span>(<span class="tok-builtin">@exp2</span>(bits - <span class="tok-number">1</span>))) - <span class="tok-number">1</span>;</span>
+<span class="line" id="L12"></span>
+<span class="line" id="L13">    <span class="tok-kw">return</span> .{</span>
+<span class="line" id="L14">        .mask_s = mask_s,</span>
+<span class="line" id="L15">        .mask_l = mask_l,</span>
+<span class="line" id="L16">    };</span>
+<span class="line" id="L17">}</span>
+<span class="line" id="L18"></span>
+<span class="line" id="L19"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> ChunkIteratorOptions = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L20">    <span class="tok-comment">/// The gear table for the rolling hash is pseudo-randomly generated using the provided seed</span></span>
+<span class="line" id="L21">    <span class="tok-comment">/// It is important to note that CDC relies on the digest of the rolling hash.</span></span>
+<span class="line" id="L22">    <span class="tok-comment">/// Thus, changing this value will also change the chunk boundaries</span></span>
+<span class="line" id="L23">    gear_table_seed: <span class="tok-type">usize</span> = <span class="tok-number">0</span>,</span>
+<span class="line" id="L24">    <span class="tok-comment">/// Desired chunk size in bytes</span></span>
+<span class="line" id="L25">    desired_chunk_size: <span class="tok-type">usize</span>,</span>
+<span class="line" id="L26">    <span class="tok-comment">/// Do not allow boundaries bellow this size in bytes</span></span>
+<span class="line" id="L27">    minimum_chunk_size: <span class="tok-type">usize</span>,</span>
+<span class="line" id="L28">    <span class="tok-comment">/// Force new chunk reaching this size in bytes</span></span>
+<span class="line" id="L29">    maximum_chunk_size: <span class="tok-type">usize</span>,</span>
+<span class="line" id="L30">    <span class="tok-comment">/// Small mask for the hash-judgement function</span></span>
+<span class="line" id="L31">    mask_s: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L32">    <span class="tok-comment">/// Large mask for the hash-judgement function</span></span>
+<span class="line" id="L33">    mask_l: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L34">};</span>
+<span class="line" id="L35"></span>
+<span class="line" id="L36"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> Chunk = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L37">    <span class="tok-comment">/// Digest of the rolling hash for this chunk</span></span>
+<span class="line" id="L38">    fingerprint: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L39">    <span class="tok-comment">/// Starting point of the chunk</span></span>
+<span class="line" id="L40">    offset: <span class="tok-type">usize</span>,</span>
+<span class="line" id="L41">    <span class="tok-comment">/// Size of the chunk in bytes</span></span>
+<span class="line" id="L42">    length: <span class="tok-type">usize</span>,</span>
+<span class="line" id="L43">};</span>
+<span class="line" id="L44"></span>
+<span class="line" id="L45"><span class="tok-comment">/// An iterator for defining chunk boundaries within data</span></span>
+<span class="line" id="L46"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> ChunkIterator = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L47">    desired_chunk_size: <span class="tok-type">usize</span>,</span>
+<span class="line" id="L48">    minimum_chunk_size: <span class="tok-type">usize</span>,</span>
+<span class="line" id="L49">    maximum_chunk_size: <span class="tok-type">usize</span>,</span>
+<span class="line" id="L50">    mask_s: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L51">    mask_l: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L52">    gear_hash: gear.GearHash,</span>
+<span class="line" id="L53">    offset: <span class="tok-type">usize</span> = <span class="tok-number">0</span>,</span>
+<span class="line" id="L54">    chunk_size: <span class="tok-type">usize</span> = <span class="tok-number">0</span>,</span>
+<span class="line" id="L55"></span>
+<span class="line" id="L56">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(options: ChunkIteratorOptions) ChunkIterator {</span>
+<span class="line" id="L57">        <span class="tok-kw">var</span> gear_hash = gear.GearHash.init(options.gear_table_seed);</span>
+<span class="line" id="L58"></span>
+<span class="line" id="L59">        <span class="tok-kw">return</span> ChunkIterator{</span>
+<span class="line" id="L60">            .desired_chunk_size = options.desired_chunk_size,</span>
+<span class="line" id="L61">            .minimum_chunk_size = options.minimum_chunk_size,</span>
+<span class="line" id="L62">            .maximum_chunk_size = options.maximum_chunk_size,</span>
+<span class="line" id="L63">            .mask_s = options.mask_s,</span>
+<span class="line" id="L64">            .mask_l = options.mask_l,</span>
+<span class="line" id="L65">            .gear_hash = gear_hash,</span>
+<span class="line" id="L66">        };</span>
+<span class="line" id="L67">    }</span>
+<span class="line" id="L68"></span>
+<span class="line" id="L69">    <span class="tok-comment">/// Consume on byte, returning a Chunk if a boundary is reached</span></span>
+<span class="line" id="L70">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">consume</span>(self: *ChunkIterator, byte: <span class="tok-type">u8</span>) ?Chunk {</span>
+<span class="line" id="L71">        self.gear_hash.consume(byte);</span>
+<span class="line" id="L72">        self.chunk_size += <span class="tok-number">1</span>;</span>
+<span class="line" id="L73"></span>
+<span class="line" id="L74">        <span class="tok-kw">if</span> (self.chunk_size &lt; self.minimum_chunk_size) <span class="tok-kw">return</span> <span class="tok-null">null</span>;</span>
+<span class="line" id="L75">        <span class="tok-kw">if</span> (self.is_chunk_boundary() <span class="tok-kw">or</span> self.chunk_size &gt;= self.maximum_chunk_size) {</span>
+<span class="line" id="L76">            <span class="tok-kw">const</span> chunk_size = self.chunk_size;</span>
+<span class="line" id="L77">            self.chunk_size = <span class="tok-number">0</span>;</span>
+<span class="line" id="L78">            <span class="tok-kw">const</span> offset = self.offset;</span>
+<span class="line" id="L79">            self.offset += chunk_size;</span>
+<span class="line" id="L80"></span>
+<span class="line" id="L81">            <span class="tok-kw">return</span> Chunk{</span>
+<span class="line" id="L82">                .fingerprint = self.gear_hash.digest(),</span>
+<span class="line" id="L83">                .offset = offset,</span>
+<span class="line" id="L84">                .length = chunk_size,</span>
+<span class="line" id="L85">            };</span>
+<span class="line" id="L86">        }</span>
+<span class="line" id="L87"></span>
+<span class="line" id="L88">        <span class="tok-kw">return</span> <span class="tok-null">null</span>;</span>
+<span class="line" id="L89">    }</span>
+<span class="line" id="L90"></span>
+<span class="line" id="L91">    <span class="tok-comment">/// The consume function does not know when the stream ends,</span></span>
+<span class="line" id="L92">    <span class="tok-comment">/// hence this function is needed to return the rest as the last Chunk</span></span>
+<span class="line" id="L93">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">final</span>(self: ChunkIterator) ?Chunk {</span>
+<span class="line" id="L94">        <span class="tok-kw">if</span> (self.chunk_size == <span class="tok-number">0</span>) <span class="tok-kw">return</span> <span class="tok-null">null</span>;</span>
+<span class="line" id="L95"></span>
+<span class="line" id="L96">        <span class="tok-kw">return</span> Chunk{</span>
+<span class="line" id="L97">            .fingerprint = self.gear_hash.digest(),</span>
+<span class="line" id="L98">            .offset = self.offset,</span>
+<span class="line" id="L99">            .length = self.chunk_size,</span>
+<span class="line" id="L100">        };</span>
+<span class="line" id="L101">    }</span>
+<span class="line" id="L102"></span>
+<span class="line" id="L103">    <span class="tok-comment">/// The so called hash judgment function, calculating if a new boundary is due</span></span>
+<span class="line" id="L104">    <span class="tok-kw">fn</span> <span class="tok-fn">is_chunk_boundary</span>(self: ChunkIterator) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L105">        <span class="tok-kw">if</span> (self.chunk_size &lt; self.desired_chunk_size) {</span>
+<span class="line" id="L106">            <span class="tok-kw">return</span> self.gear_hash.digest() &amp; self.mask_s == <span class="tok-number">0</span>;</span>
+<span class="line" id="L107">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L108">            <span class="tok-kw">return</span> self.gear_hash.digest() &amp; self.mask_l == <span class="tok-number">0</span>;</span>
+<span class="line" id="L109">        }</span>
+<span class="line" id="L110">    }</span>
+<span class="line" id="L111">};</span>
+<span class="line" id="L112"></span>
+</code></pre></body>
+</html>
